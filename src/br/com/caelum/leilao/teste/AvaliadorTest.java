@@ -1,26 +1,50 @@
 package br.com.caelum.leilao.teste;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeNoException;
 
 import java.util.List;
 
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import br.com.caelum.leilao.builder.CriadorDeLeilao;
 import br.com.caelum.leilao.dominio.Lance;
 import br.com.caelum.leilao.dominio.Leilao;
 import br.com.caelum.leilao.dominio.Usuario;
 import br.com.caelum.leilao.servico.Avaliador;
 import junit.framework.Assert;
 
-public class TesteDoAvaliador {
-
+public class AvaliadorTest {
+	
+	private Avaliador leiloeiro;
+	private Usuario joao;
+	private Usuario jose;
+	private Usuario maria;
+	
+	
+	@BeforeClass
+	public static void testandoBeforeClass() {
+	  System.out.println("before class");
+	}
+	
+	@Before
+	public void setUp() {
+		this.leiloeiro = new Avaliador();
+		System.out.println("cria avaliador");
+		
+		 this.joao = new Usuario("Joao");
+		 this.jose = new Usuario("jose");
+		 this.maria = new Usuario("maria");
+	}
+	
+	
 	@Test
 	public void deveEntenderLancesEmOrdemCrescente() {
 		
-		// parte 1: cenario
-		Usuario joao = new Usuario("Joao");
-		Usuario jose = new Usuario("jose");
-		Usuario maria = new Usuario("maria");
 		
 		Leilao leilao = new Leilao("playstation3");
 		
@@ -30,7 +54,7 @@ public class TesteDoAvaliador {
 		
 		
 		// parte 2: acao
-		Avaliador leiloeiro = new Avaliador();
+	
 		leiloeiro.avalia(leilao);
 
 		
@@ -46,11 +70,11 @@ public class TesteDoAvaliador {
 	
 	@Test
 	public void deveEntenderLeilaoComApenasUmLance() {
-		Usuario joao = new Usuario("Joao");
+		
 		Leilao leilao = new Leilao("CAsa");
 		
 		leilao.propoe(new Lance(joao, 1000.0));
-		Avaliador leiloeiro = new Avaliador();
+		
 		leiloeiro.avalia(leilao);
 		
 		assertEquals(1000.0, leiloeiro.getMaiorLance(), 0.00001);
@@ -59,16 +83,14 @@ public class TesteDoAvaliador {
 	
 	@Test
 	public void deveEncontrarOsTresMaioresLances() {
-		Usuario joao = new Usuario("Joao");
-		Usuario maria = new Usuario("Maria");
-		Leilao leilao = new Leilao("Playstation 3 novo");
 		
-		leilao.propoe(new Lance(joao, 100.0));
-		leilao.propoe(new Lance(maria, 200.0));
-		leilao.propoe(new Lance(joao, 300.0));
-		leilao.propoe(new Lance(maria, 400.0));
+		Leilao leilao = new CriadorDeLeilao().para("Playstation 3 Novo")
+				.lance(joao, 100.0)
+				.lance(maria,200.0)
+				.lance(joao, 300.0)
+				.lance(maria, 400.0)
+				.constroi();
 		
-		Avaliador leiloeiro = new Avaliador();
 		leiloeiro.avalia(leilao);
 		
 		List<Lance> tresMaiores = leiloeiro.getTresMaiores();
@@ -80,8 +102,7 @@ public class TesteDoAvaliador {
 	
     @Test
     public void deveEntenderLeilaoComLancesEmOrdemRandomica() {
-        Usuario joao = new Usuario("Joao"); 
-        Usuario maria = new Usuario("Maria"); 
+       
         Leilao leilao = new Leilao("Playstation 3 Novo");
 
         leilao.propoe(new Lance(joao,200.0));
@@ -91,7 +112,7 @@ public class TesteDoAvaliador {
         leilao.propoe(new Lance(joao,630.0));
         leilao.propoe(new Lance(maria,230.0));
 
-        Avaliador leiloeiro = new Avaliador();
+     
         leiloeiro.avalia(leilao);
 
         assertEquals(700.0, leiloeiro.getMaiorLance(), 0.0001);
@@ -101,8 +122,7 @@ public class TesteDoAvaliador {
     
     @Test
     public void deveEntenderLeilaoComLancesEmOrdemDecrescente() {
-        Usuario joao = new Usuario("Joao"); 
-        Usuario maria = new Usuario("Maria"); 
+     
         Leilao leilao = new Leilao("Playstation 3 Novo");
 
         leilao.propoe(new Lance(joao,400.0));
@@ -110,7 +130,7 @@ public class TesteDoAvaliador {
         leilao.propoe(new Lance(joao,200.0));
         leilao.propoe(new Lance(maria,100.0));
 
-        Avaliador leiloeiro = new Avaliador();
+      
         leiloeiro.avalia(leilao);
 
         assertEquals(400.0, leiloeiro.getMaiorLance(), 0.0001);
@@ -121,14 +141,13 @@ public class TesteDoAvaliador {
 
     @Test
     public void deveDevolverTodosLancesCasoNaoHajaNoMinimo3() {
-        Usuario joao = new Usuario("João");
-        Usuario maria = new Usuario("Maria");
+     
         Leilao leilao = new Leilao("Playstation 3 Novo");
 
         leilao.propoe(new Lance(joao, 100.0));
         leilao.propoe(new Lance(maria, 200.0));
 
-        Avaliador leiloeiro = new Avaliador();
+      
         leiloeiro.avalia(leilao);
 
         List<Lance> maiores = leiloeiro.getTresMaiores();
@@ -142,12 +161,30 @@ public class TesteDoAvaliador {
     public void deveDevolverListaVaziaCasoNaoHajaLances() {
         Leilao leilao = new Leilao("Playstation 3 Novo");
 
-        Avaliador leiloeiro = new Avaliador();
+      
         leiloeiro.avalia(leilao);
 
         List<Lance> maiores = leiloeiro.getTresMaiores();
 
         assertEquals(0, maiores.size());
     }
+    
+    
+    @Test(expected=RuntimeException.class)
+    public void naoDeveAvaliarLeiloesSemNenhumLanceDado() {
+    	Leilao leilao = new CriadorDeLeilao().para("Playstation 3").constroi();
+    	leiloeiro.avalia(leilao);
+    }
+    
+    
+	@After
+	public void finaliza() {
+		System.out.println("fim");
+	}
+	
+	@AfterClass
+	public static void testandoAfterClass() {
+	  System.out.println("after class");
+	}
 
 }
